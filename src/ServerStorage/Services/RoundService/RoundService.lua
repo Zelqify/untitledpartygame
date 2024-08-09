@@ -15,6 +15,11 @@ local RoundService = Knit.CreateService{
     _ForceStop = false,
 }
 
+
+-- [[ Other Directories ]] --
+
+local VoteService = require(ServerStorage.Services.VoteService.VoteService)
+
 --[[ Main Systems ]] --
 
 
@@ -25,7 +30,8 @@ local function coreLoop()
             print('Intermission: ' .. timer)
             task.wait(1)
         end
-        
+        local Results = VoteService.new('Gamemode')
+        print('Selected Gamemode is: ' .. Results)
     end
 end
 

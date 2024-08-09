@@ -3,6 +3,7 @@ return {
     ['GameModes'] = {
         'Catch the Bomb',
         'Hide and Seek',
+        'Obby',
     },
     ['Maps'] = {
         ['Catch the Bomb'] = {
