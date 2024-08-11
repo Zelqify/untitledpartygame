@@ -5,6 +5,7 @@ print('Starting Knit Server')
 local start = tick()
 Knit.AddServices(game.ServerStorage.Services.RoundService)
 Knit.AddServices(game.ServerStorage.Services.VoteService)
+Knit.AddServices(game.ServerStorage.Services.Gamemodes["Catch the Bomb"])
 
 Knit.Start():andThen(function()
     local timeTaken = tick() - start

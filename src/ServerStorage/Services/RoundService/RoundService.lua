@@ -25,6 +25,23 @@ local VoteService = require(ServerStorage.Services.VoteService.VoteService)
 
 --[[ Main Systems ]] --
 
+local function SpawnMap(Mode, Map)
+    local map = ReplicatedStorage.Maps[Mode][Map]:Clone()
+    map.Parent = game.Workspace
+    return map
+end
+
+local function SpawnPlayers(Map : Model)
+    for index,v in Players:GetChildren() do
+        local Character = v.Character
+        if Character == nil then
+            v.CharacterAdded:Wait()
+            Character = v.Character
+        end
+        local TP_CFrame = CFrame.new(Map:FindFirstChild('Spawns'):GetChildren()[index].Position, Map.WorldPivot.Position)
+        Character:PivotTo(TP_CFrame)
+    end
+end
 
 local function coreLoop()
     while true do
@@ -33,9 +50,16 @@ local function coreLoop()
             RoundService.Client.Update:FireAll('Intermission: ' .. timer)
             task.wait(1)
         end
-        local Results = VoteService.new('Gamemode')
-        RoundService.Client.Update:FireAll('Selected gamemode is: ' .. Results)
-        task.wait(5)
+        local ModeResults = VoteService.new('Gamemode')
+        RoundService.Client.Update:FireAll('Selected gamemode is: ' .. ModeResults)
+        task.wait(2)
+        local MapResults = VoteService.new('Map', ModeResults)
+        RoundService.Client.Update:FireAll('Selected map is: ' .. MapResults)
+        task.wait(2)
+        local CurrentMap = SpawnMap(ModeResults, MapResults)
+        SpawnPlayers(CurrentMap)
+        local GameplayService = Knit.GetService(ModeResults)
+        local LeaderboardResults = GameplayService:StartGameplay(CurrentMap)
     end
 end
 
