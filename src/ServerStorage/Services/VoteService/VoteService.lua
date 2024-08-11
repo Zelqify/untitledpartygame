@@ -66,6 +66,7 @@ function VoteService.new(VotingType)
         clientsVoted = {}
         return results
     elseif VotingType == 'Map' then
+        
 
     else
         warn('Unable to start voting: Unknown VotingType')
