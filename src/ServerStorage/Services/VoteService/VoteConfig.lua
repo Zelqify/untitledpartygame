@@ -2,7 +2,7 @@ return {
     ['VoteDuration'] = 15,
     ['GameModes'] = {
         'Catch the Bomb',
-        'Hide and Seek',
+        '_',
         'Obby',
     },
     ['Maps'] = {

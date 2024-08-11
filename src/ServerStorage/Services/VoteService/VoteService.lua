@@ -12,7 +12,8 @@ local VoteConfig = require(Main.VoteConfig)
 local VoteService = Knit.CreateService{
     Name = 'VoteService',
     Client = {
-        Vote = Knit.CreateSignal()
+        Vote = Knit.CreateSignal(),
+        DisplayVote = Knit.CreateSignal()
     },
 }
 
@@ -20,11 +21,12 @@ local VoteService = Knit.CreateService{
 local availableVotings = {}
 local clientsVoted = {}
 
+local RoundService
+
 function VoteService.new(VotingType)
     if VotingType == 'Gamemode' then
         table.clear(availableVotings)
         table.clear(clientsVoted)
-        print('Now select a GameMode!')
         for i = 1,3 do
             local selected 
             repeat
@@ -39,8 +41,14 @@ function VoteService.new(VotingType)
             until not doesExist
             availableVotings[selected] = 0
         end
+        local toPass =  {}
+        for section,_ in availableVotings do
+            table.insert(toPass, section)
+        end
+        
+        VoteService.Client.DisplayVote:FireAll('Gamemode', toPass)
         for timer = VoteConfig.VoteDuration, 0,-1 do
-            print('Voting: ' .. timer)
+            RoundService.Client.Update:FireAll('Now vote for a game mode! (' .. timer .. ')')
             task.wait(1)
         end
         local results
@@ -85,7 +93,7 @@ end
 
 function VoteService:KnitStart()
     print('VoteService has been started')
-
+    RoundService = Knit.GetService('RoundService')
     VoteService.Client.Vote:Connect(function(Client, Vote)
         if clientsVoted[Client] ~= nil then
             local section = clientsVoted[Client]

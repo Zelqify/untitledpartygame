@@ -13,6 +13,9 @@ local RoundConfig = require(Main.RoundConfig)
 local RoundService = Knit.CreateService{
     Name = 'RoundService',
     _ForceStop = false,
+    Client = {
+        Update = Knit.CreateSignal()
+    }
 }
 
 
@@ -27,11 +30,12 @@ local function coreLoop()
     while true do
         assert(not RoundService._ForceStop, 'Game has been force stopped.')
         for timer = RoundConfig['IntermissionDuration'], 0, -1 do
-            print('Intermission: ' .. timer)
+            RoundService.Client.Update:FireAll('Intermission: ' .. timer)
             task.wait(1)
         end
         local Results = VoteService.new('Gamemode')
-        print('Selected Gamemode is: ' .. Results)
+        RoundService.Client.Update:FireAll('Selected gamemode is: ' .. Results)
+        task.wait(5)
     end
 end
 
