@@ -236,7 +236,7 @@ function Gameplay:StartGameplay(Map : Model)
     local hb_connection2
 
     hb_connection2 = RunService.Heartbeat:Connect(function(deltaTime)
-        if #PlayersAlive <= 0 then
+        if #PlayersAlive <= 1 then
             hb_connection2:Disconnect()
             isPlaying = false
         end
@@ -262,9 +262,7 @@ function Gameplay:StartGameplay(Map : Model)
     end)
     while true do
         task.wait()
-        print(#PlayersAlive)
         if isPlaying == false then
-            print('PAUSEEEEEEE!')
             Bomb:Destroy()
             Highlight:Destroy()
             task.wait(3)
