@@ -56,6 +56,18 @@ local function coreLoop()
         local MapResults = VoteService.new('Map', ModeResults)
         RoundService.Client.Update:FireAll('Selected map is: ' .. MapResults)
         local CurrentMap = SpawnMap(ModeResults, MapResults)
+        for _,v in CurrentMap:GetDescendants() do
+            if v:IsA('HingeConstraint') then
+                v.Enabled = true
+            end
+            if v.Name == 'SpinningHammer' then
+                for _,obj in v:GetDescendants() do
+                    if obj:IsA('BasePart') and obj.Name ~= 'Center' then
+                        obj.Anchored = false
+                    end
+                end
+            end
+        end
         task.wait(5)
         SpawnPlayers(CurrentMap)
         local GameplayService = Knit.GetService(ModeResults)

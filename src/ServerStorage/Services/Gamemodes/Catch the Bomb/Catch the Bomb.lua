@@ -13,7 +13,9 @@ local Knit = require(ReplicatedStorage.Packages.Knit)
 local Config = require(script.Parent.Config)
 local Gameplay = Knit.CreateService{
     Name = 'Catch the Bomb',
-    Client = {}
+    Client = {
+        Impulse = Knit.CreateSignal()
+    }
 }
 
 
@@ -27,9 +29,7 @@ local isPlaying = false
 local counting = false
 local RoundService
 
-local function GiveBomb()
-    
-end
+
 function Gameplay:StartGameplay(Map : Model)
     isPlaying = true
     local PlayersAlive = Players:GetPlayers()
@@ -38,6 +38,7 @@ function Gameplay:StartGameplay(Map : Model)
 
     -- // Animasyondan sonra:
     task.wait(2)
+    print('Players Alive at the beginning: ' .. #PlayersAlive)
     local spins = {}
     local BombPlayer = PlayersAlive[math.random(1,#PlayersAlive)]
     local Bomb = ReplicatedStorage.Assets.Bomb:Clone()
@@ -65,7 +66,7 @@ function Gameplay:StartGameplay(Map : Model)
     end
 
     local function Reshuffle()
-        print(PlayersAlive)
+        if #PlayersAlive == 1 then return end
         BombPlayer = PlayersAlive[math.random(1,#PlayersAlive)]
         Bomb = ReplicatedStorage.Assets.Bomb:Clone()
         Bomb.Parent = BombPlayer.Character
@@ -89,11 +90,11 @@ function Gameplay:StartGameplay(Map : Model)
 
     local canTransfer = true
     for _,Player in PlayersAlive do
-        for _,CharacterObject in Player.Character:GetChildren() do
+        for _,CharacterObject in ipairs(Player.Character:GetChildren()) do
             if CharacterObject:IsA('BasePart') then
                 CharacterObject.Touched:Connect(function(Hit)
                     if Player == BombPlayer then
-                        if Hit.Parent:IsA('Model') and table.find(PlayersAlive, game.Players:GetPlayerFromCharacter(Hit.Parent)) and canTransfer then
+                        if Hit.Parent:IsA('Model') and table.find(PlayersAlive, game.Players:GetPlayerFromCharacter(Hit.Parent)) and canTransfer and isPlaying then
                             canTransfer = false
                             local NewPlayer = game.Players:GetPlayerFromCharacter(Hit.Parent)
                             BombPlayer = NewPlayer
@@ -121,15 +122,7 @@ function Gameplay:StartGameplay(Map : Model)
         end
     end
     -- // Spin Handler
-    local hb_connection = RunService.PostSimulation:Connect(function(deltaTime)
-        for _,v in spins do
-            if v:IsA('Model') and v.Name == 'SpinningHammer' then
-                local rotation = CFrame.Angles(0, 0, math.rad(90 * deltaTime))
-                local modelCFrame = v:GetPivot()
-                v:PivotTo(modelCFrame * rotation)
-            end
-        end
-    end)
+
     local countdownFrom = Config.BombStartDuration
 
     task.spawn(function()
@@ -146,6 +139,18 @@ function Gameplay:StartGameplay(Map : Model)
                         end
                     end)
                 end
+            end
+        end
+    end)
+
+    task.spawn(function()
+        for _,bouncepart in Map:GetDescendants() do
+            if bouncepart:IsA('BasePart') and bouncepart.Name == 'Bouncer' then
+                bouncepart.Touched:Connect(function(Hit)
+                    if Hit.Parent:IsA('Model') and Players:FindFirstChild(Hit.Parent.Name) then
+                        Gameplay.Client.Impulse:Fire(game.Players:GetPlayerFromCharacter(Hit.Parent), -(bouncepart.Position - Hit.Parent.HumanoidRootPart.Position ).Unit * 150)
+                    end
+                end)
             end
         end
     end)
@@ -176,18 +181,14 @@ function Gameplay:StartGameplay(Map : Model)
             if v:IsA('BasePart') then
                 TweenService:Create(v, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),{Transparency = 1}):Play()
             end
-        end
+        end 
         BombPlayer.Character.Humanoid.Health = 0
         counting = false
         Highlight:Destroy()
         task.wait(0.2)
         Bomb:Destroy()
         task.wait(1)
-        for index,player in PlayersAlive do
-            if player == BombPlayer then
-                PlayersAlive[index] = nil
-            end
-        end
+       
         Reshuffle()
     end
             -- Bomb Countdown
@@ -232,19 +233,26 @@ function Gameplay:StartGameplay(Map : Model)
         end
     end)
     -- // Round System
+    local hb_connection2
 
-    RunService.Heartbeat:Connect(function(deltaTime)
-        if #PlayersAlive <= 1 then
-            hb_connection:Disconnect()  
+    hb_connection2 = RunService.Heartbeat:Connect(function(deltaTime)
+        if #PlayersAlive <= 0 then
+            hb_connection2:Disconnect()
             isPlaying = false
         end
     end)
 
+    for i,player in PlayersAlive do
+        local Character = player.Character
+        Character.Humanoid.Died:Connect(function()
+            table.remove(PlayersAlive, i)
+        end)
+    end
     Players.PlayerRemoving:Connect(function(player)
         if table.find(PlayersAlive, player) then
             for i,v in PlayersAlive do
                 if player == v then
-                    PlayersAlive[i] = nil
+                    table.remove(PlayersAlive, i)
                 end
             end
         end
@@ -254,7 +262,9 @@ function Gameplay:StartGameplay(Map : Model)
     end)
     while true do
         task.wait()
+        print(#PlayersAlive)
         if isPlaying == false then
+            print('PAUSEEEEEEE!')
             Bomb:Destroy()
             Highlight:Destroy()
             task.wait(3)

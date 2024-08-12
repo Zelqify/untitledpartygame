@@ -9,7 +9,7 @@ return {
         ['Catch the Bomb'] = {
             'Grassy Plains',
             'Crazy Jumps',
-            'Map3'
+            'Playground'
         },
 
         ['_1'] = {
