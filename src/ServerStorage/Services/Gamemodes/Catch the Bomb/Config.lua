@@ -1,4 +1,4 @@
 return {
-    ['BombStartDuration'] = 500,
+    ['BombStartDuration'] = 3000,
     ['SpeedUpMultiplier'] = 1.2,
 }

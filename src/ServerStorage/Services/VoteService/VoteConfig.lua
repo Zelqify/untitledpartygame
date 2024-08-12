@@ -8,7 +8,7 @@ return {
     ['Maps'] = {
         ['Catch the Bomb'] = {
             'Grassy Plains',
-            'Map2',
+            'Crazy Jumps',
             'Map3'
         },
 

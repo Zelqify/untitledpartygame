@@ -13,7 +13,8 @@ local VoteService = Knit.CreateService{
     Name = 'VoteService',
     Client = {
         Vote = Knit.CreateSignal(),
-        DisplayVote = Knit.CreateSignal()
+        DisplayVote = Knit.CreateSignal(),
+        HideVotes = Knit.CreateSignal()
     },
 }
 
@@ -51,6 +52,7 @@ function VoteService.new(VotingType, args)
             RoundService.Client.Update:FireAll('Now vote for a game mode! (' .. timer .. ')')
             task.wait(1)
         end
+        VoteService.Client.HideVotes:FireAll()
         local results
         local best_voted = 0
         local equals = {}
@@ -99,6 +101,7 @@ function VoteService.new(VotingType, args)
             RoundService.Client.Update:FireAll('Now vote for a map! (' .. timer .. ')')
             task.wait(1)
         end
+        VoteService.Client.HideVotes:FireAll()
         local results
         local best_voted = 0
         local equals = {}

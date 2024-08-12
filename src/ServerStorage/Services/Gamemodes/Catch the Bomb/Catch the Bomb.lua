@@ -1,6 +1,7 @@
 --[[ Directories ]] --
 -- [[ Catch The Bomb ]] --
 local Players = game.Players
+local LocalizationService = game:GetService('LocalizationService')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local RunService = game:GetService('RunService')
 local TweenService = game:GetService('TweenService')
@@ -64,6 +65,7 @@ function Gameplay:StartGameplay(Map : Model)
     end
 
     local function Reshuffle()
+        print(PlayersAlive)
         BombPlayer = PlayersAlive[math.random(1,#PlayersAlive)]
         Bomb = ReplicatedStorage.Assets.Bomb:Clone()
         Bomb.Parent = BombPlayer.Character
@@ -79,9 +81,44 @@ function Gameplay:StartGameplay(Map : Model)
         
         Highlight = ReplicatedStorage.Assets.TargetedHighlight:Clone()
         Highlight.Parent = BombPlayer.Character
+        Highlight.Enabled = true
 
         TimerGui.Enabled = true
         counting = true
+    end
+
+    local canTransfer = true
+    for _,Player in PlayersAlive do
+        for _,CharacterObject in Player.Character:GetChildren() do
+            if CharacterObject:IsA('BasePart') then
+                CharacterObject.Touched:Connect(function(Hit)
+                    if Player == BombPlayer then
+                        if Hit.Parent:IsA('Model') and table.find(PlayersAlive, game.Players:GetPlayerFromCharacter(Hit.Parent)) and canTransfer then
+                            canTransfer = false
+                            local NewPlayer = game.Players:GetPlayerFromCharacter(Hit.Parent)
+                            BombPlayer = NewPlayer
+                            Bomb.Parent = NewPlayer.Character
+                            Bomb:PivotTo(CFrame.new(BombPlayer.Character.Head.Position + Vector3.new(0,5,0)))
+
+                            TimerGui.Parent = Bomb.Hitbox
+
+                            weld:Destroy()
+                            weld = Instance.new('WeldConstraint')
+                            weld.Parent = Bomb
+                            weld.Part0 = BombPlayer.Character.HumanoidRootPart
+                            weld.Part1 = Bomb.Hitbox
+                            
+                            Highlight.Parent = BombPlayer.Character
+                            Highlight.Enabled = true
+                            task.spawn(function()
+                                task.wait(2)
+                                canTransfer = true
+                            end)
+                        end
+                    end
+                end)
+            end
+        end
     end
     -- // Spin Handler
     local hb_connection = RunService.PostSimulation:Connect(function(deltaTime)
@@ -220,8 +257,14 @@ function Gameplay:StartGameplay(Map : Model)
         if isPlaying == false then
             Bomb:Destroy()
             Highlight:Destroy()
+            task.wait(3)
+            PlayersAlive[1].Character.Humanoid.Health = 0
 
-            return PlayersAlive
+            local Winners = {}
+            for _,v in PlayersAlive do
+                table.insert(Winners, v.Name)
+            end
+            return Winners
         end
     end
 end

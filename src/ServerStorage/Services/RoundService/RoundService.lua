@@ -55,11 +55,15 @@ local function coreLoop()
         task.wait(2)
         local MapResults = VoteService.new('Map', ModeResults)
         RoundService.Client.Update:FireAll('Selected map is: ' .. MapResults)
-        task.wait(2)
         local CurrentMap = SpawnMap(ModeResults, MapResults)
+        task.wait(5)
         SpawnPlayers(CurrentMap)
         local GameplayService = Knit.GetService(ModeResults)
         local LeaderboardResults = GameplayService:StartGameplay(CurrentMap)
+        local WinnersString = table.concat(LeaderboardResults, ', ', 1,#LeaderboardResults)
+        RoundService.Client.Update:FireAll(WinnersString .. ' has won the game!')
+        task.wait(4)
+        CurrentMap:Destroy()
     end
 end
 

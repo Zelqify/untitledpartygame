@@ -12,7 +12,7 @@ local PlayerGui = game.Players.LocalPlayer:WaitForChild('PlayerGui')
 local VoteUI = PlayerGui:WaitForChild('HUD'):WaitForChild('Canvas').VoteMenus
 
 VoteUI.Position -= UDim2.new(0,0,1,0)
-
+local isHiding = true
 function VoteController:KnitStart()
     print('VoteController has been started')
     local VoteService = Knit.GetService('VoteService')
@@ -27,7 +27,15 @@ function VoteController:KnitStart()
            
         end
         VoteUI.Visible = true
+        isHiding = false
         TweenService:Create(VoteUI,TweenInfo.new(0.5,Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = VoteUI.Position + UDim2.new(0,0,1,0)}):Play()
+    end)
+
+    VoteService.HideVotes:Connect(function()
+        if isHiding == true then
+            return
+        end
+        TweenService:Create(VoteUI,TweenInfo.new(0.5,Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = VoteUI.Position - UDim2.new(0,0,1,0)}):Play()
     end)
 
     for index,v in VoteUI:GetChildren() do
@@ -35,6 +43,7 @@ function VoteController:KnitStart()
             v.Button.Votebutton.MouseButton1Up:Connect(function()
                 local toVote = v.Mapname.Text
                 VoteService.Vote:Fire(toVote)
+                isHiding = true
                 TweenService:Create(VoteUI,TweenInfo.new(0.5,Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = VoteUI.Position - UDim2.new(0,0,1,0)}):Play()
             end)
         end
